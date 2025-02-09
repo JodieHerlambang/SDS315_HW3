@@ -1,0 +1,402 @@
+---
+title: 'Homework #3'
+author: "Jodie Herlambang (joh538)"
+date: "February 13,2025"
+subtitle: ""
+output:
+   pdf_document:
+    toc: true
+    number_sections: false
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# import libraries and all dataset used
+library(tidyverse)
+library(ggplot2)
+library(mosaic)
+gasprices <- read.csv("gasprices.csv")
+sclass <- read.csv("sclass.csv")
+nbc <- read.csv("nbc_pilotsurvey.csv")
+ebay <- read.csv("ebay.csv")
+```
+
+\newpage
+
+# Problem 1: Gas Prices
+
+## Theory A:
+
+```{r, echo=FALSE, warning=FALSE}
+# bootstrap
+boot_comp <- do(1000) * diffmean(Price ~ Competitors, data = resample(gasprices))
+
+#graph of bootstrap
+ggplot(boot_comp)+ geom_histogram(aes(x= diffmean), binwidth = 0.005) +
+  labs(
+    title = "Average Gas Prices Difference between stations with/without visible competition",
+    x = "Mean Price Difference"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_comp,level=  0.95)
+```
+
+|                    | Confidence Level | Lower   | Upper   | Estimate |
+|--------------------|:----------------:|---------|---------|----------|
+| Difference in Mean |       95%        | -0.0560 | 0.00607 | -0.02348 |
+
+Claim: Gas stations charge more if they lack direct competition in sight.
+
+If we were able to survey all gas stations in the United States, we estimate that the average price difference between stations without visible competition and those with visible competition would fall between -5.60 cents and +0.61 cents, with 95% confidence. Since the confidence interval includes zero, we cannot confidently conclude that there is a true difference in price based on competition, the difference is not statistically significant at the 95% confidence level. As shown in the graph above, price differences fluctuate in both directions, regardless of whether a gas station faces direct competition.
+
+Thus, it can be concluded that the theory is not supported by the data. It is unknown if gas stations charge more if they lack direct competition in sight.
+
+\newpage
+
+## Theory B:
+
+```{r, echo=FALSE, warning=FALSE}
+# bootstrap
+boot_income <- do(1000) * cor(~Income,~Price, data = resample(gasprices))
+
+#graph of bootstrap
+ggplot(boot_income) + geom_histogram(aes(x = cor), binwidth = 0.04) +
+  labs(
+    title = "Correlation between Median Household Income and Gas Station Price",
+    x = "Correlation Coefficient"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_income,level=  0.95)
+```
+
+|             | Confidence Level | Lower | Upper | Estimate |
+|-------------|:----------------:|-------|-------|----------|
+| Correlation |       95%        | 0.18  | 0.55  | 0.39     |
+
+Claim: The richer the area, the higher the gas prices.
+
+If we were able to survey all gas stations in the United States, we estimate that the average correlation between median household income as gas station price would fall somewhere between +0.18 and +0.55, with 95% confidence. Since the confidence interval does not include zero, this suggests a statistically significant positive association between income and gas prices. The correlation is positive and statistically significant, suggesting that as median household income increases, gas prices are also likely to be higher.
+
+Thus, it can be concluded that the theory is supported by the data. That the richer the area, the higher the gas prices, but we cannot establish causation, and other factors may also contribute to this trend.
+
+\newpage
+
+## Theory C:
+
+```{r, echo=FALSE, warning=FALSE}
+# bootstrap
+boot_stoplight <- do(1000)* diffmean(Price ~ Stoplight, data = resample(gasprices))
+
+#graph of bootstrap
+ggplot(boot_stoplight) + geom_histogram(aes(x = diffmean), binwidth = 0.005) +
+    labs(
+    title = "Average Gas Prices Difference between stations at a stoplight or not",
+    x = "Mean Price Difference"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_stoplight,level=  0.95)
+```
+
+|                    | Confidence Level | Lower    | Upper   | Estimate |
+|--------------------|:----------------:|----------|---------|----------|
+| Difference in Mean |       95%        | -0.03831 | 0.03151 | -0.00329 |
+
+Claim: Gas stations at stoplights charge more.
+
+If we were able to survey all gas stations in the United States, we estimate that the average price difference between stations at a stoplight and not would fall between -3.83 cents and +3.15 cents, with 95% confidence. Since the confidence interval includes zero, we cannot confidently conclude that there is a true difference in price based upon if there is a stoplight or not, the difference is not statistically significant at the 95% confidence level. As shown in the graph above, price differences fluctuate in both directions, regardless of whether a gas station is located at a stoplight. Additionally, there is a possibility that gas stations not located at stoplights may charge higher prices than those at stoplights as the interval contains positive and negative price differences.
+
+Thus, it can be concluded that the theory is not supported by the data. It is unknown if gas stations at stoplights charge more.
+
+\newpage
+
+## Theory D:
+
+```{r, echo=FALSE, warning=FALSE}
+# bootstrap
+boot_highway <- do(1000)* diffmean(Price ~ Highway, data = resample(gasprices))
+
+#graph of bootstrap
+ggplot(boot_highway) + geom_histogram(aes(x = diffmean), binwidth = 0.007) +
+  labs(
+    title = "Average Gas Prices Difference Between Gas Stations on/off the highway",
+    x = "Mean Price Difference"
+  )
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_highway,level=  0.95)
+```
+
+|                    | Confidence Level | Lower  | Upper  | Estimate |
+|--------------------|:----------------:|--------|--------|----------|
+| Difference in Mean |       95%        | 0.0092 | 0.0836 | 0.0456   |
+
+Claim: Gas stations with direct highway access charge more.
+
+If we were able to survey all gas stations in the United States, we estimate the difference in price between gas stations on an off the highway is somewhere between +0.92 cents and +8.38 cents, with 95% confidence. Since the confidence interval doesn't include zero, we have strong statistical evidence that gas stations with direct highway access charge more. Gas stations with direct highway access can charge 0.92 - 8.38 cents more than highwayws without direct highway access.
+
+Thus, it can be concluded that the theory is supported by the data. That gas stations with direct highway access charge more.
+
+\newpage
+
+## Theory E:
+
+```{r, echo=FALSE, warning=FALSE}
+
+gasprices |>
+  mutate("isShell" = (Brand == "Shell")) -> gasprices
+
+# bootstrap
+boot_brand <- do(1000)*diffmean(Price ~ isShell, data = resample(gasprices))
+
+#graph of bootstrap
+ggplot(boot_brand) + geom_histogram(aes(x = diffmean), binwidth = 0.005) +
+  labs(
+    title = "Average Gas Prices Difference between Shell and Non-Shell Brands",
+    x = "Mean Price Difference"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_brand, level = 0.95)
+```
+
+|                    | Confidence Level | Lower    | Upper  | Estimate |
+|--------------------|:----------------:|----------|--------|----------|
+| Difference in Mean |       95%        | -0.00807 | 0.0622 | 0.0274   |
+
+Claim: Shell charges more than all other non-Shell brands.
+
+If we were able to survey all gas stations in the United States, we estimate that the average gas price difference between Shell brands and non-Shell brands would fall between -0.81 cents and +6.22 cents, with 95% confidence. Since the confidence interval includes zero, we cannot confidently conclude that there is a true difference in price based on if the stations is a Shell brand or not, the difference is not statistically significant at the 95% confidence level. As shown in the graph above, price differences fluctuate in both directions, regardless of the gas station brand.
+
+Thus, it can be concluded that the theory is not supported by the data. It is unknown Shell charges more than all other non-Shell brands.
+
+\newpage
+
+# Problem 2: Mercedes S-Class Vehicles
+
+## Part A:
+
+```{r, echo=FALSE, warning=FALSE}
+sclass2011 <- sclass |>
+  filter(year == 2011, trim == "63 AMG")
+
+# bootstrap
+boot_mileage = do(1000)*mean(~mileage, data = resample(sclass2011))
+
+#graph of bootstrap
+ggplot(boot_mileage) +
+  geom_histogram(aes(x=mean), binwidth = 500, center = 250) +
+  labs(
+    title = "Average Mileage 2011 S-Class 63 AMG in the Used Market",
+    x = "Mean Mileage"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_mileage,level=  0.95)
+```
+
+Based on this analysis, we estimate that if we had data on all 2011 S-Class 63 AMG cars available in the used market at that time, the true average mileage would fall between 26,175.65 miles and 31,689.36 miles with 95% confidence.
+
+\newpage
+
+## Part B:
+
+```{r, echo=FALSE, warning=FALSE}
+sclass2014 <- sclass |>
+  filter(year == 2014, trim == "550") |>
+  mutate("isBlack" = (color == "Black"))
+
+# bootstrap
+boot_propblack = do(1000)*prop(~isBlack, data=resample(sclass2014))
+
+#graph of bootstrap
+ggplot(boot_propblack) +
+  geom_histogram(aes(x=prop_TRUE), binwidth = 0.005, center =0.0025) +
+  labs(
+    title = "Proportion of Black 2014 S-Class 550s in the Used Market",
+    x = "Proportion Painted Black"
+  )
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_propblack,level=  0.95)
+```
+
+Based on this analysis, we estimate that if we had data on all all 2014 S-Class 550s cars available in the used market at that time, the proportion that were painted black would fall between 0.417 and 0.453 with 95% confidence.
+
+\newpage
+
+# Problem 3: Pilot Episode Survey
+
+## Part A:
+
+```{r, echo=FALSE, warning=FALSE}
+nbc |>
+  filter(Show == "Living with Ed" | Show == "My Name is Earl") ->nbcA
+
+# bootstrap
+boot_happy = do(1000)* diffmean (Q1_Happy ~ Show, data = resample(nbcA))
+
+#graph of bootstrap
+ggplot(boot_happy) +
+  geom_histogram(aes(x = diffmean), binwidth = 0.05) +
+  labs(
+    title = "Average Happy Rating Difference in “Living with Ed” and “My Name is Earl” ",
+    x = "Mean Difference in Happy Rating"
+  )
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_happy, level = 0.95)
+```
+
+|                    | Confidence Level | Lower   | Upper  | Estimate |
+|--------------------|:----------------:|---------|--------|----------|
+| Difference in Mean |       95%        | -0.4080 | 0.0859 | -0.149   |
+
+Who makes viewers happier: : Ed or Earl? Let's try to determine whether one of the shows, “Living with Ed” or “My Name is Earl”, consistently produces a higher mean Q1_Happy response among viewers, on a 1-5 scale rating.
+
+We used bootstrapping to estimate a 95% confidence interval for the difference in mean Q1_Happy responses between the two shows.
+
+From the bootstrapping, if we were to survey everyone watching the shows “Living with Ed” and “My Name is Earl”, the difference in mean viewer response to the happy question would fall between -0.408 and +0.0859 rating, with 95% confidence. Since the confidence interval includes zero, we do not have strong statistical evidence that one show consistently generates a higher happiness rating than the other.
+
+Based on our analysis, we cannot confidently conclude that viewers of either "Living with Ed" or "My Name is Earl" consistently report higher happiness ratings. The data suggests that any observed difference in Q1_Happy ratings are likely due to random variation rather than a meaningful preference for one show over the other.
+
+\newpage
+
+## Part B:
+
+```{r, echo=FALSE, warning=FALSE}
+nbc |>
+  filter(Show == "The Biggest Loser" | Show == "The Apprentice: Los Angeles") ->nbcB
+
+# bootstrap
+boot_annoy = do(1000)* diffmean(Q1_Annoyed ~ Show, data = resample(nbcB))
+
+#graph of bootstrap
+ggplot(boot_annoy) +
+  geom_histogram(aes(x = diffmean), binwidth = 0.05) + 
+    labs(
+    title = "Average Annoyed Rating Difference in 'The Biggest Loser' and 'The Apprentice: LA'",
+    x = "Mean Difference in Annoyed Rating"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_annoy, level = 0.95)
+```
+
+|                    | Confidence Level | Lower  | Upper  | Estimate |
+|--------------------|:----------------:|--------|--------|----------|
+| Difference in Mean |       95%        | -0.537 | -0.007 | -0.271   |
+
+Which reality/contest show made people feel more annoyed: "The Biggest Loser” and “The Apprentice: Los Angeles”? Let's try to determine whether one of the shows, The Biggest Loser” or “The Apprentice: Los Angeles”, consistently produces a higher mean Q1_Annoyed response among viewers, on a 1-5 scale rating.
+
+We used bootstrapping to estimate a 95% confidence interval for the difference in mean Q1_Annoyed responses between the two shows.
+
+From the bootstrapping, if we were to survey everyone watching the shows "The Biggest Loser” and “The Apprentice: Los Angeles”, the difference in mean viewer response to the annoyed question would fall between -0.54 and -0.007 rating, with 95% confidence. Since the confidence interval doesn't include zero, we have strong statistical evidence that one show consistently generates a higher annoyance rating than the other.
+
+Based on our analysis, we can confidently conclude that viewers of either "The Biggest Loser” or “The Apprentice: Los Angeles” consistently report higher annoyed ratings. Generally, "The Apprentice: Los Angeles" made people slightly more annoyed than "The Biggest Loser” when watching these two shows
+
+\newpage
+
+## Part C:
+
+```{r, echo=FALSE, warning=FALSE}
+nbc |>
+  filter(Show == "Dancing with the Stars") ->nbcC
+
+nbcC |>
+  mutate(AgreeConfuse = (Q2_Confusing == 4 | Q2_Confusing == 5 )) -> nbcC
+
+# bootstrap
+boot_confuse = do(1000)*prop(~AgreeConfuse, data = resample(nbcC))
+
+#graph of bootstrap
+ggplot(boot_confuse) +
+  geom_histogram(aes(x = prop_TRUE), binwidth = 0.01) +
+  labs(
+    title = "Proportion Confused with 'Dancing with the Stars'",
+    x = "Proportion Confused"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_confuse, level = 0.95)
+```
+
+|            | Confidence Level | Lower | Upper | Estimate |
+|------------|:----------------:|-------|-------|----------|
+| Proportion |       95%        | 0.044 | 0.122 | 0.0773   |
+
+Let's try to determine what proportion of American TV watchers would we expect to give a response of 4 or greater to the “Q2_Confusing” question when asked about the show “Dancing with the Stars.”
+
+We used bootstrapping to estimate a 95% confidence interval for the proportion of Q2_Confusing responses of 4 or greater.
+
+From the bootstrapping, if we were to survey American TV watchers, the proportion of viewers giving a 4 rating or greater to the “Q2_Confusing” question would fall between 0.044 and 0.12, with 95% confidence.
+
+Based on our analysis, we can confidently conclude that the proportion of American TV watchers that would be confused by "Dancing with the Stars" would would fall between 0.044 and 0.12.
+
+\newpage
+
+# Problem 4: EBay
+
+```{r, echo=FALSE, warning=FALSE}
+ebay |>
+  mutate (RevenueRatio = rev_after/rev_before) -> ebay
+
+# bootstrap
+boot_ebay = do(10000) * diffmean(RevenueRatio ~ adwords_pause, data = resample(ebay))
+
+#graph of bootstrap
+ggplot(boot_ebay) + geom_histogram(aes(x = diffmean), binwidth = 0.007) +
+  labs(
+    title = "Revenue Ratio Difference with/without Search Advertising on Google",
+    x = "Difference Revenue Ratio"
+  )
+
+```
+
+```{r, echo=FALSE, warning=FALSE, eval=FALSE}
+# confidence interval
+confint(boot_ebay, level = 0.95)
+```
+
+|                     | Confidence Level | Lower   | Upper  | Estimate |
+|---------------------|:----------------:|---------|--------|----------|
+| Difference in Means |       95%        | -0.0904 | -0.013 | -0.052   |
+
+Does the extra traffic brought to our site from paid search results—above and beyond what we’d see if we “went organic”—justify the cost of the ads themselves? Let's try to determine whether advertising on Google AdWords it worth it for businesses like eBay.
+
+There are 2 groups a treatment group and a control group: advertising on Google AdWords for the whole DMA was paused for a month or advertising on Google AdWords continued as before. Then we bootstrapped the revenue ratio (after to before) to find the mean difference between the two groups.
+
+From the bootstrapping, the difference in revenue ratio between the treatment and control DMAs (treatment - control) would fall between -0.0904 and -0.013, with 95% confidence. Since the confidence interval doesn't include zero, we have strong statistical evidence that without EBay’s paid search advertising on Google there was less revenue compared to the team continued DMAs.
+
+Based on our analysis, we can confidently conclude that data favors the idea that paid
+search advertising on Google creates extra revenue for EBay. The revenue ratio was systematically lower in the treatment-group DMAs versus the control-group DMAs.
